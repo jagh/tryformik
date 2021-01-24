@@ -1,110 +1,93 @@
+// import React from 'react';
+// import { render } from 'react-dom';
+// import App from './App';
+//
+// render(<App />, document.body.appendChild(document.createElement('div')));
+
+
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Formik, Field, Form, ErrorMessage, FieldArray } from 'formik';
 
+const initialValues = {
+  friends: [
+    {
+      name: '',
+      email: '',
+    },
+  ],
+};
 
-class MiniFormik extends React.Component {
-  state = {
-    values: this.props.initialValues || {},
-    touched: {},
-    errors: {}
-  };
-
-  handleChange = event => {
-    const target = event.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    event.persist();
-    this.setState(prevState => ({
-      values: {
-        ...prevState.values,
-        [name]: value,
-      },
-    }));
-  }
-
-  handleBlur = event => {
-    const target = event.target;
-    const name = target.name;
-    event.persist();
-    this.setState(prevState => ({
-      touched: {
-        ...prevState.touched,
-        [name]: true,
-      },
-    }));
-  }
-
-  handleSubmit = e => {
-    e.preventDefault();
-    // validate
-    this.props.onSubmit(this.state.values)
-  }
-
-  render() {
-    return this.props.children({
-      ...this.state,
-      handleChange: this.handleChange,
-      handleBlur: this.handleBlur,
-      handleSubmit: this.handleSubmit,
-    });
-  }
-}
-
-
-class Reservation extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isGoing: true,
-      numberOfGuests: 2
-    };
-    // this.handleInputChange = this.handleInputChange.bind(this);
-  }
-
-  render() {
-    return (
-      <MiniFormik
-        initialValues={{
-          isGoing: true,
-          numberOfGuests: 2,
-        }}
-        onSubmit={values => alert(JSON.stringify(values, null, 2))}
-        >
-        {(props) => {
-          const { values, errors, touched, handleBlur, handleSubmit, handleChange } = props
-          return (
-            <form onSubmit={handleSubmit}>
-              <label>
-                Is going:
-                <input
-                  name="isGoing"
-                  type="checkbox"
-                  className="checkbox"
-                  checked={values.isGoing}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-              </label>
-              <br />
-              <label>
-                Number of guests:
-                <input
-                  name="numberOfGuests"
-                  type="number"
-                  value={values.numberOfGuests}
-                  onChange={handleChange}
-                />
-              </label>
-              <pre>{JSON.stringify(props, null, 2)}</pre>
-          </form>
-        );
+const InviteFriends = () => (
+  <div>
+    <h1>Invite friends</h1>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={async (values) => {
+        await new Promise((r) => setTimeout(r, 500));
+        alert(JSON.stringify(values, null, 2));
       }}
-      </MiniFormik>
-    );
-  }
-}
-
-ReactDOM.render(
-  <Reservation />,
-  document.getElementById('root')
+    >
+      {({ values }) => (
+        <Form>
+          <FieldArray name="friends">
+            {({ insert, remove, push }) => (
+              <div>
+                {values.friends.length > 0 &&
+                  values.friends.map((friend, index) => (
+                    <div className="row" key={index}>
+                      <div className="col">
+                        <label htmlFor={`friends.${index}.name`}>Name</label>
+                        <Field
+                          name={`friends.${index}.name`}
+                          placeholder="Jane Doe"
+                          type="text"
+                        />
+                        <ErrorMessage
+                          name={`friends.${index}.name`}
+                          component="div"
+                          className="field-error"
+                        />
+                      </div>
+                      <div className="col">
+                        <label htmlFor={`friends.${index}.email`}>Email</label>
+                        <Field
+                          name={`friends.${index}.email`}
+                          placeholder="jane@acme.com"
+                          type="email"
+                        />
+                        <ErrorMessage
+                          name={`friends.${index}.name`}
+                          component="div"
+                          className="field-error"
+                        />
+                      </div>
+                      <div className="col">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => remove(index)}
+                        >
+                          X
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => push({ name: '', email: '' })}
+                >
+                  Add Friend
+                </button>
+              </div>
+            )}
+          </FieldArray>
+          <button type="submit">Invite</button>
+        </Form>
+      )}
+    </Formik>
+  </div>
 );
+
+ReactDOM.render(<InviteFriends />, document.getElementById('root'));
